@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Social Media Dashboard - Posted</title>
+    <title>Posted Tweets Dashboard</title>
     <style>
         * {
             margin: 0;
@@ -11,21 +11,25 @@
             box-sizing: border-box;
         }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1da1f2 0%, #14171a 100%);
             min-height: 100vh;
             padding: 20px;
         }
         .container {
-            max-width: 1200px;
+            max-width: 800px;
             margin: 0 auto;
         }
         h1 {
             color: white;
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 10px;
             font-size: 2.5em;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        .subtitle {
+            color: rgba(255,255,255,0.8);
+            text-align: center;
+            margin-bottom: 30px;
         }
         .stats {
             display: flex;
@@ -34,184 +38,157 @@
             margin-bottom: 30px;
         }
         .stat-card {
-            background: rgba(255,255,255,0.9);
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
             padding: 15px 30px;
             border-radius: 10px;
             text-align: center;
+            color: white;
         }
         .stat-number {
             font-size: 2em;
             font-weight: bold;
-            color: #667eea;
         }
-        .stat-label {
-            color: #666;
-            font-size: 0.9em;
-        }
-        .timeline {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+        .tweets-container {
+            display: flex;
+            flex-direction: column;
             gap: 20px;
         }
-        .post-card {
+        .tweet-card {
             background: white;
             border-radius: 15px;
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
-        .post-header {
+        .tweet-header {
             background: #f8f9fa;
             padding: 15px 20px;
             border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        .post-date {
-            font-size: 0.85em;
+        .tweet-date {
+            font-size: 0.9em;
             color: #667eea;
             font-weight: 600;
         }
-        .filename {
+        .tweet-filename {
             font-size: 0.8em;
             color: #999;
-            margin-top: 5px;
-            word-break: break-all;
         }
-        .post-content {
+        .tweet-embed {
             padding: 20px;
-        }
-        .caption {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            font-size: 0.95em;
-            line-height: 1.5;
-            color: #333;
-            border-left: 3px solid #667eea;
-            white-space: pre-wrap;
-        }
-        .actions {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .btn {
-            flex: 1;
-            min-width: 120px;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 8px;
-            font-size: 0.9em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-decoration: none;
-            text-align: center;
-            display: inline-block;
-        }
-        .btn-twitter {
-            background: #1da1f2;
-            color: white;
-        }
-        .btn-twitter:hover {
-            background: #1a91da;
-        }
-        .btn-instagram {
-            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
-            color: white;
-        }
-        .btn-instagram:hover {
-            opacity: 0.9;
-        }
-        .loading {
-            text-align: center;
-            color: white;
-            font-size: 1.2em;
-            padding: 50px;
         }
         .empty-state {
             text-align: center;
             color: white;
             padding: 50px;
         }
-        .empty-state h2 {
-            font-size: 2em;
-            margin-bottom: 10px;
+        .loading {
+            text-align: center;
+            color: white;
+            padding: 50px;
+            font-size: 1.2em;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>📱 Posted History</h1>
+        <h1>📱 Posted Tweets</h1>
+        <p class="subtitle">Your published content gallery</p>
         
         <div class="stats">
             <div class="stat-card">
                 <div class="stat-number" id="total-posted">-</div>
-                <div class="stat-label">Total Posted</div>
+                <div>Total Posted</div>
             </div>
             <div class="stat-card">
                 <div class="stat-number" id="posted-today">-</div>
-                <div class="stat-label">Posted Today</div>
+                <div>Today</div>
             </div>
         </div>
 
-        <div id="timeline" class="timeline">
-            <div class="loading">Loading posted history...</div>
+        <div id="tweets-container" class="tweets-container">
+            <div class="loading">Loading tweets...</div>
         </div>
     </div>
 
     <script>
-        // Function to render posts
-        function renderPosts(posts) {
-            const timeline = document.getElementById('timeline');
-            
-            if (posts.length === 0) {
-                timeline.innerHTML = `
-                    <div class="empty-state">
-                        <h2>No posts yet</h2>
-                        <p>Posts will appear here after they're published</p>
-                    </div>
-                `;
-                return;
-            }
-
-            timeline.innerHTML = posts.map(post => `
-                <div class="post-card">
-                    <div class="post-header">
-                        <div class="post-date">${post.date}</div>
-                        <div class="filename">${post.filename}</div>
-                    </div>
-                    <div class="post-content">
-                        <div class="caption">${post.caption}</div>
-                        <div class="actions">
-                            ${post.twitter_url ? 
-                                `<a href="${post.twitter_url}" target="_blank" class="btn btn-twitter">View on X</a>` :
-                                `<a href="https://twitter.com/intent/tweet?text=${encodeURIComponent(post.caption)}" target="_blank" class="btn btn-twitter">Post to X</a>`
-                            }
-                            <a href="https://www.instagram.com/" target="_blank" class="btn btn-instagram">Open IG</a>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-
-            document.getElementById('total-posted').textContent = posts.length;
-        }
-
-        // Load posts data
-        fetch('posts.json')
-            .then(response => response.json())
-            .then(data => {
-                renderPosts(data.posts);
+        async function loadTweets() {
+            try {
+                const response = await fetch('posts.json');
+                const data = await response.json();
+                
+                document.getElementById('total-posted').textContent = data.total_posted || 0;
                 document.getElementById('posted-today').textContent = data.posted_today || 0;
-            })
-            .catch(error => {
-                console.error('Error loading posts:', error);
-                document.getElementById('timeline').innerHTML = `
+                
+                const container = document.getElementById('tweets-container');
+                
+                if (!data.posts || data.posts.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <h2>No tweets posted yet</h2>
+                            <p>Your posted tweets will appear here</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Only show posts with Twitter URLs
+                const tweetsWithUrls = data.posts.filter(post => post.twitter_url);
+                
+                if (tweetsWithUrls.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <h2>No embedded tweets available</h2>
+                            <p>Tweet URLs not found in log</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = tweetsWithUrls.map(post => {
+                    // Extract tweet ID from URL
+                    const tweetIdMatch = post.twitter_url.match(/status\/(\d+)/);
+                    const tweetId = tweetIdMatch ? tweetIdMatch[1] : '';
+                    
+                    return `
+                        <div class="tweet-card">
+                            <div class="tweet-header">
+                                <span class="tweet-date">${post.date}</span>
+                                <span class="tweet-filename">${post.filename}</span>
+                            </div>
+                            <div class="tweet-embed">
+                                <blockquote class="twitter-tweet">
+                                    <a href="${post.twitter_url}"></a>
+                                </blockquote>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                // Load Twitter embed script
+                if (document.querySelector('.twitter-tweet')) {
+                    const script = document.createElement('script');
+                    script.src = 'https://platform.twitter.com/widgets.js';
+                    script.async = true;
+                    script.charset = 'utf-8';
+                    document.body.appendChild(script);
+                }
+                
+            } catch (error) {
+                console.error('Error loading tweets:', error);
+                document.getElementById('tweets-container').innerHTML = `
                     <div class="empty-state">
-                        <h2>Error loading posts</h2>
-                        <p>Make sure posts.json exists</p>
+                        <h2>Error loading tweets</h2>
+                        <p>Could not load posts.json</p>
                     </div>
                 `;
-            });
+            }
+        }
+        
+        loadTweets();
     </script>
 </body>
 </html>
