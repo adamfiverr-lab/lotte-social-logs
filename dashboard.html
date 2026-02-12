@@ -73,6 +73,22 @@
             color: #667eea;
             font-weight: 600;
         }
+        .copy-btn {
+            background: #1da1f2;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .copy-btn:hover {
+            background: #1a91da;
+        }
+        .copy-btn.copied {
+            background: #28a745;
+        }
         .tweet-filename {
             font-size: 0.8em;
             color: #999;
@@ -148,7 +164,7 @@
                     return;
                 }
                 
-                container.innerHTML = tweetsWithUrls.map(post => {
+                container.innerHTML = tweetsWithUrls.map((post, index) => {
                     // Extract tweet ID from URL
                     const tweetIdMatch = post.twitter_url.match(/status\/(\d+)/);
                     const tweetId = tweetIdMatch ? tweetIdMatch[1] : '';
@@ -157,6 +173,9 @@
                         <div class="tweet-card">
                             <div class="tweet-header">
                                 <span class="tweet-date">${post.date}</span>
+                                <button class="copy-btn" onclick="copyCaption(${index})" title="Copy caption + hashtags">
+                                    📋 Copy Caption
+                                </button>
                             </div>
                             <div class="tweet-embed">
                                 <blockquote class="twitter-tweet">
@@ -166,6 +185,9 @@
                         </div>
                     `;
                 }).join('');
+                
+                // Store posts data for copy function
+                window.postsData = tweetsWithUrls;
                 
                 // Load Twitter embed script
                 if (document.querySelector('.twitter-tweet')) {
@@ -184,6 +206,27 @@
                         <p>Could not load posts.json</p>
                     </div>
                 `;
+            }
+        }
+        
+        // Copy caption function
+        async function copyCaption(index) {
+            const post = window.postsData[index];
+            if (post && post.caption) {
+                try {
+                    await navigator.clipboard.writeText(post.caption);
+                    const btn = document.querySelectorAll('.copy-btn')[index];
+                    const originalText = btn.textContent;
+                    btn.textContent = '✅ Copied!';
+                    btn.classList.add('copied');
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                        btn.classList.remove('copied');
+                    }, 2000);
+                } catch (err) {
+                    console.error('Failed to copy:', err);
+                    alert('Failed to copy caption');
+                }
             }
         }
         
