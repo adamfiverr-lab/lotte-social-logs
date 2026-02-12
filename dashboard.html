@@ -188,6 +188,16 @@
         }
         
         loadTweets();
+        
+        // Auto-refresh every 60 seconds
+        setInterval(loadTweets, 60000);
+        
+        // Also refresh when tab becomes visible again
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                loadTweets();
+            }
+        });
     </script>
 </body>
 </html>
