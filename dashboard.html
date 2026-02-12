@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Social Media Dashboard</title>
+    <title>Social Media Dashboard - Posted</title>
     <style>
         * {
             margin: 0;
@@ -50,7 +50,7 @@
         }
         .timeline {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
             gap: 20px;
         }
         .post-card {
@@ -58,33 +58,25 @@
             border-radius: 15px;
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            transition: transform 0.2s;
         }
-        .post-card:hover {
-            transform: translateY(-5px);
+        .post-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e0e0e0;
         }
-        .image-container {
-            width: 100%;
-            height: 300px;
-            background: #f0f0f0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
+        .post-date {
+            font-size: 0.85em;
+            color: #667eea;
+            font-weight: 600;
         }
-        .image-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+        .filename {
+            font-size: 0.8em;
+            color: #999;
+            margin-top: 5px;
+            word-break: break-all;
         }
         .post-content {
             padding: 20px;
-        }
-        .filename {
-            font-size: 0.85em;
-            color: #999;
-            margin-bottom: 10px;
-            word-break: break-all;
         }
         .caption {
             background: #f8f9fa;
@@ -95,13 +87,7 @@
             line-height: 1.5;
             color: #333;
             border-left: 3px solid #667eea;
-        }
-        .caption-label {
-            font-size: 0.75em;
-            color: #667eea;
-            font-weight: bold;
-            text-transform: uppercase;
-            margin-bottom: 5px;
+            white-space: pre-wrap;
         }
         .actions {
             display: flex;
@@ -136,13 +122,6 @@
         .btn-instagram:hover {
             opacity: 0.9;
         }
-        .btn-download {
-            background: #28a745;
-            color: white;
-        }
-        .btn-download:hover {
-            background: #218838;
-        }
         .loading {
             text-align: center;
             color: white;
@@ -158,45 +137,29 @@
             font-size: 2em;
             margin-bottom: 10px;
         }
-        .refresh-btn {
-            background: white;
-            color: #667eea;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-top: 20px;
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>📱 Social Media Dashboard</h1>
+        <h1>📱 Posted History</h1>
         
         <div class="stats">
             <div class="stat-card">
-                <div class="stat-number" id="pending-count">-</div>
-                <div class="stat-label">Pending Posts</div>
+                <div class="stat-number" id="total-posted">-</div>
+                <div class="stat-label">Total Posted</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" id="posted-count">-</div>
+                <div class="stat-number" id="posted-today">-</div>
                 <div class="stat-label">Posted Today</div>
             </div>
         </div>
 
         <div id="timeline" class="timeline">
-            <div class="loading">Loading posts...</div>
+            <div class="loading">Loading posted history...</div>
         </div>
     </div>
 
     <script>
-        // Configuration
-        const CONFIG = {
-            // This will be populated by the Python script
-            posts: []
-        };
-
         // Function to render posts
         function renderPosts(posts) {
             const timeline = document.getElementById('timeline');
@@ -204,9 +167,8 @@
             if (posts.length === 0) {
                 timeline.innerHTML = `
                     <div class="empty-state">
-                        <h2>No pending posts</h2>
-                        <p>Add images to your Google Drive "Insta-twitter" folder</p>
-                        <button class="refresh-btn" onclick="location.reload()">Refresh</button>
+                        <h2>No posts yet</h2>
+                        <p>Posts will appear here after they're published</p>
                     </div>
                 `;
                 return;
@@ -214,27 +176,24 @@
 
             timeline.innerHTML = posts.map(post => `
                 <div class="post-card">
-                    <div class="image-container">
-                        <img src="${post.local_path}" alt="${post.filename}" 
-                             onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22><rect width=%22100%22 height=%22100%22 fill=%22%23ddd%22/><text x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22>Image</text></svg>'">
+                    <div class="post-header">
+                        <div class="post-date">${post.date}</div>
+                        <div class="filename">${post.filename}</div>
                     </div>
                     <div class="post-content">
-                        <div class="filename">${post.filename}</div>
-                        <div class="caption-label">Generated Caption</div>
                         <div class="caption">${post.caption}</div>
                         <div class="actions">
-                            <a href="https://twitter.com/intent/tweet?text=${encodeURIComponent(post.caption)}" 
-                               target="_blank" class="btn btn-twitter">Post to X</a>
-                            <a href="https://publish.buffer.com" 
-                               target="_blank" class="btn btn-instagram">Post to IG</a>
-                            <a href="${post.download_url}" 
-                               download class="btn btn-download">Download</a>
+                            ${post.twitter_url ? 
+                                `<a href="${post.twitter_url}" target="_blank" class="btn btn-twitter">View on X</a>` :
+                                `<a href="https://twitter.com/intent/tweet?text=${encodeURIComponent(post.caption)}" target="_blank" class="btn btn-twitter">Post to X</a>`
+                            }
+                            <a href="https://www.instagram.com/" target="_blank" class="btn btn-instagram">Open IG</a>
                         </div>
                     </div>
                 </div>
             `).join('');
 
-            document.getElementById('pending-count').textContent = posts.length;
+            document.getElementById('total-posted').textContent = posts.length;
         }
 
         // Load posts data
@@ -242,7 +201,7 @@
             .then(response => response.json())
             .then(data => {
                 renderPosts(data.posts);
-                document.getElementById('posted-count').textContent = data.posted_today || 0;
+                document.getElementById('posted-today').textContent = data.posted_today || 0;
             })
             .catch(error => {
                 console.error('Error loading posts:', error);
@@ -250,7 +209,6 @@
                     <div class="empty-state">
                         <h2>Error loading posts</h2>
                         <p>Make sure posts.json exists</p>
-                        <button class="refresh-btn" onclick="location.reload()">Retry</button>
                     </div>
                 `;
             });
