@@ -9,3 +9,10 @@
 - **Caption**: caught me in 4k bestie 🙈✨ bet you cant stop looking this view is all yours 👀
 - **Hashtags**: #OOTD #Blonde #BathroomSelfie #CasualVibes #ThatGirl #BaddieVibes #InstaGood #FitCheck #Denim #Selfie
 - **Note**: Deleted and reposted with improved flirty caption
+
+## 2026-02-13 13:52:00
+- **Image**: Hailuo_Image_Put the person of the first im_477216063203766279.jpg
+- **Twitter**: ✅ https://twitter.com/i/web/status/2022292867444600928
+- **Instagram**: ⏭️ Skipped
+- **Caption**: mirror said i look good today so i had to listen 💕 hello kitty vibes and chill, who wants to join
+- **Hashtags**: #HelloKitty #Vibes
