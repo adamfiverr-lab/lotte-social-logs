@@ -89,55 +89,73 @@
         .copy-btn.copied {
             background: #28a745;
         }
+        .tweet-content {
+            padding: 20px;
+        }
+        .tweet-caption {
+            font-size: 1.1em;
+            line-height: 1.5;
+            color: #333;
+            margin-bottom: 10px;
+        }
         .tweet-filename {
             font-size: 0.8em;
             color: #999;
+            font-family: monospace;
+            margin-bottom: 10px;
         }
-        .tweet-embed {
-            padding: 20px;
+        .tweet-link {
+            display: inline-block;
+            color: #1da1f2;
+            text-decoration: none;
+            font-size: 0.9em;
+        }
+        .tweet-link:hover {
+            text-decoration: underline;
         }
         .empty-state {
             text-align: center;
             color: white;
-            padding: 50px;
+            padding: 60px 20px;
         }
-        .loading {
-            text-align: center;
-            color: white;
-            padding: 50px;
-            font-size: 1.2em;
+        .empty-state h2 {
+            font-size: 1.8em;
+            margin-bottom: 10px;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>📱 Posted Tweets</h1>
-        <p class="subtitle">Your published content gallery</p>
+        <p class="subtitle">Dashboard for @LotteVauren</p>
         
         <div class="stats">
             <div class="stat-card">
-                <div class="stat-number" id="total-posted">-</div>
-                <div>Total Posted</div>
+                <div class="stat-number" id="total-posts">-</div>
+                <div>Total Posts</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" id="posted-today">-</div>
-                <div>Today</div>
+                <div class="stat-number" id="posts-today">-</div>
+                <div>Posted Today</div>
             </div>
         </div>
-
+        
         <div id="tweets-container" class="tweets-container">
-            <div class="loading">Loading tweets...</div>
+            <div class="empty-state">
+                <h2>Loading...</h2>
+            </div>
         </div>
     </div>
 
     <script>
         async function loadTweets() {
             try {
-                const response = await fetch('posts.json');
+                const response = await fetch('posts.json?t=' + Date.now());
                 const data = await response.json();
                 
-                document.getElementById('total-posted').textContent = data.total_posted || 0;
-                document.getElementById('posted-today').textContent = data.posted_today || 0;
+                // Update stats
+                document.getElementById('total-posts').textContent = data.total_posted || 0;
+                document.getElementById('posts-today').textContent = data.posted_today || 0;
                 
                 const container = document.getElementById('tweets-container');
                 
@@ -151,58 +169,33 @@
                     return;
                 }
                 
-                // Only show posts with Twitter URLs
-                const tweetsWithUrls = data.posts.filter(post => post.twitter_url);
-                
-                if (tweetsWithUrls.length === 0) {
-                    container.innerHTML = `
-                        <div class="empty-state">
-                            <h2>No embedded tweets available</h2>
-                            <p>Tweet URLs not found in log</p>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                container.innerHTML = tweetsWithUrls.map((post, index) => {
-                    // Extract tweet ID from URL
-                    const tweetIdMatch = post.twitter_url.match(/status\/(\d+)/);
-                    const tweetId = tweetIdMatch ? tweetIdMatch[1] : '';
-                    
+                // Show all posts
+                container.innerHTML = data.posts.map((post, index) => {
                     return `
                         <div class="tweet-card">
                             <div class="tweet-header">
                                 <span class="tweet-date">${post.date}</span>
-                                <button class="copy-btn" onclick="copyCaption(${index})" title="Copy caption + hashtags">
-                                    📋 Copy Caption
+                                <button class="copy-btn" onclick="copyCaption(${index})" title="Copy caption">
+                                    📋 Copy
                                 </button>
                             </div>
-                            <div class="tweet-embed">
-                                <blockquote class="twitter-tweet">
-                                    <a href="${post.twitter_url}"></a>
-                                </blockquote>
+                            <div class="tweet-content">
+                                <div class="tweet-caption">${post.caption || 'No caption'}</div>
+                                <div class="tweet-filename">${post.filename}</div>
+                                ${post.twitter_url ? `<a href="${post.twitter_url}" target="_blank" class="tweet-link">View on X →</a>` : ''}
                             </div>
                         </div>
                     `;
                 }).join('');
                 
                 // Store posts data for copy function
-                window.postsData = tweetsWithUrls;
-                
-                // Load Twitter embed script
-                if (document.querySelector('.twitter-tweet')) {
-                    const script = document.createElement('script');
-                    script.src = 'https://platform.twitter.com/widgets.js';
-                    script.async = true;
-                    script.charset = 'utf-8';
-                    document.body.appendChild(script);
-                }
+                window.postsData = data.posts;
                 
             } catch (error) {
                 console.error('Error loading tweets:', error);
                 document.getElementById('tweets-container').innerHTML = `
                     <div class="empty-state">
-                        <h2>Error loading tweets</h2>
+                        <h2>Error loading posts</h2>
                         <p>Could not load posts.json</p>
                     </div>
                 `;
@@ -234,13 +227,6 @@
         
         // Auto-refresh every 60 seconds
         setInterval(loadTweets, 60000);
-        
-        // Also refresh when tab becomes visible again
-        document.addEventListener('visibilitychange', () => {
-            if (!document.hidden) {
-                loadTweets();
-            }
-        });
     </script>
 </body>
 </html>
